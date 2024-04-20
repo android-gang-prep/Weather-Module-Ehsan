@@ -392,3 +392,4 @@ fun percentOfRange(max: Long, min: Long, value: Long): Double {
     return distance / diff.toDouble()
 }
 
+
