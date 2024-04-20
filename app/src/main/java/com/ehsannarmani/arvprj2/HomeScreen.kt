@@ -136,8 +136,15 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                     contentDescription = null
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
+                                val prep = remember {
+                                    try {
+                                        ((precipitations.first() * 100) / precipitations.max()).roundToInt()
+                                    }catch (e:Exception){
+                                        0
+                                    }
+                                }
                                 Text(
-                                    text = "${((precipitations.first() * 100) / precipitations.max()).roundToInt()}%",
+                                    text = "$prep%",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
