@@ -70,4 +70,13 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.androidx.navigation.compose)
 
+    val mockitoVersion = ""
+    val mockkVersion = ""
+    val mockitoKotlinVersion = ""
+
+//    testImplementation ("org.mockito:mockito-core:$mockitoVersion")
+//    testImplementation ("org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion")
+    testImplementation ("org.mockito:mockito-core:3.+")
+    testImplementation ("org.robolectric:robolectric:4.12")
+
 }

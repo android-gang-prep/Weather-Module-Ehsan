@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<meteomatics-api-response version="3.0">
+    <user>cloud_maghari_setare</user>
+    <dateGenerated>2024-04-21T06:37:39Z</dateGenerated>
+    <status>OK</status>
+    <data>
+        <parameter name="wind_speed_10m:ms">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">2.4</value>
+            </location>
+        </parameter>
+        <parameter name="wind_dir_10m:d">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">214.7</value>
+            </location>
+        </parameter>
+        <parameter name="t_2m:F">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">77.4</value>
+            </location>
+        </parameter>
+        <parameter name="weather_symbol_1h:idx">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">3</value>
+            </location>
+        </parameter>
+        <parameter name="precip_24h:mm">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">1.51</value>
+            </location>
+        </parameter>
+        <parameter name="uv:idx">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">1</value>
+            </location>
+        </parameter>
+        <parameter name="sunset:sql">
+            <location lat="35.721324" lon="51.342037">
+                <value date="2024-04-20T13:00:00Z">2024-04-20T15:11:00Z</value>
+            </location>
+        </parameter>
+    </data>
+</meteomatics-api-response>

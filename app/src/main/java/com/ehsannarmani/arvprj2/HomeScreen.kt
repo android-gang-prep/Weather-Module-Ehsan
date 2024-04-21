@@ -62,7 +62,7 @@ import com.ehsannarmani.arvprj2.extensions.to1Decimal
 import com.ehsannarmani.arvprj2.extensions.toCelsius
 import com.ehsannarmani.arvprj2.models.getImageForSymbol
 import com.ehsannarmani.arvprj2.viewModels.HomeViewModel
-import com.ehsannarmani.arvprj2.viewModels.Response
+import com.ehsannarmani.arvprj2.models.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Calendar
