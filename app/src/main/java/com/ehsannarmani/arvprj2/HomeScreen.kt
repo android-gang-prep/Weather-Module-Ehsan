@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -63,13 +64,15 @@ import com.ehsannarmani.arvprj2.extensions.toCelsius
 import com.ehsannarmani.arvprj2.models.getImageForSymbol
 import com.ehsannarmani.arvprj2.viewModels.HomeViewModel
 import com.ehsannarmani.arvprj2.models.Response
+import com.ehsannarmani.arvprj2.repositories.WeatherRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
-
+val sunTimeFormatter= SimpleDateFormat("HH:mm")
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewModel()) {
 
@@ -77,6 +80,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
 
     val response by viewModel.response.collectAsState()
     val today = Calendar.getInstance()
+
+    val pathMeasure = remember {
+        PathMeasure()
+    }
 
     Box(
         modifier = Modifier
@@ -281,15 +288,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(170.dp), verticalAlignment = Alignment.Bottom,
+                                    .height(180.dp), verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                val sumImageBitmap =
-                                    ImageBitmap.imageResource(id = R.drawable.yellow_sum)
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_sunrise),
-                                    contentDescription = null
-                                )
+                                val contentColor = Color.White.copy(.6f)
+                                Column (
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ){
+                                    Text(text = "Sunrsie",color = contentColor)
+                                    Text(text = sunTimeFormatter.format(sunrises.first()),color = contentColor)
+                                }
                                 val sunProgress = remember {
                                     mutableDoubleStateOf(0.0)
                                 }
@@ -312,68 +320,60 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                         }
                                     }
 
-                                    val lineSpaceFromBottom = 80
-                                    val sunSpaceFromLine = 65
-                                    val path = Path().apply {
-                                        moveTo(0f, size.height - lineSpaceFromBottom)
-                                        lineTo(
-                                            size.width / 2,
-                                            (size.height / 2f) - lineSpaceFromBottom
-                                        )
-                                        lineTo(size.width, size.height - lineSpaceFromBottom)
-                                    }
-                                    val sunIconPath = Path().apply {
-                                        moveTo(
-                                            0f,
-                                            size.height - (lineSpaceFromBottom + sunSpaceFromLine)
-                                        )
-                                        lineTo(
-                                            size.width / 2,
-                                            (size.height / 1.7f) - (lineSpaceFromBottom + sunSpaceFromLine)
-                                        )
-                                        lineTo(
-                                            size.width,
-                                            size.height - (lineSpaceFromBottom + sunSpaceFromLine)
-                                        )
-                                    }
+                                    val externalLineSize = 70
+                                    val sunShapeBottomSpacing = 120
+                                    val sunShapeStrokeWith = 8f
 
-                                    val measure = PathMeasure()
-                                    measure.setPath(sunIconPath, false)
-
-                                    val style =
-                                        Stroke(7f, pathEffect = PathEffect.cornerPathEffect(200f))
-
-                                    val sunPosition =
-                                        measure.getPosition((measure.length * sunProgress.value).toFloat())
+                                   val path = Path().apply {
+                                       arcTo(
+                                           rect = Rect(
+                                               center = Offset(size.width/2,size.height-sunShapeBottomSpacing),
+                                               radius = size.width/2
+                                           ),
+                                           startAngleDegrees = -180f,
+                                           sweepAngleDegrees = 180f,
+                                           forceMoveTo = true
+                                       )
+                                   }
                                     drawPath(
                                         path = path,
-                                        color = Color.White,
-                                        style = style
+                                        color = contentColor,
+                                        style = Stroke(width = sunShapeStrokeWith)
                                     )
 
-                                    drawImage(
-                                        image = sumImageBitmap,
-                                        topLeft = sunPosition,
+                                    drawLine(
+                                        color = contentColor,
+                                        start = Offset(x = -externalLineSize.toFloat(),y = size.height-sunShapeBottomSpacing),
+                                        end = Offset(x = size.width+externalLineSize,y = size.height-sunShapeBottomSpacing),
+                                        strokeWidth = sunShapeStrokeWith
                                     )
 
                                     clipRect(right = (size.width * sunProgress.value).toFloat()) {
                                         drawPath(
                                             path = path,
-                                            brush = Brush.horizontalGradient(
-                                                listOf(
-                                                    Color(0xffFFDC3A),
-                                                    Color(0xffFF6B00),
-                                                )
-                                            ),
-                                            style = style
+                                            color = Color(0xffFFDC3A),
+                                            style = Stroke(width = sunShapeStrokeWith)
                                         )
                                     }
+                                    pathMeasure.setPath(path,false)
+                                    val sunPosition = pathMeasure.getPosition((pathMeasure.length*sunProgress.value).toFloat())
+
+                                    drawCircle(
+                                        color = Color(0xffFFDC3A),
+                                        center = sunPosition,
+                                        radius = 25f
+                                    )
+                                    drawCircle(
+                                        color = Color(0xffFFDC3A).copy(alpha = .5f),
+                                        center = sunPosition,
+                                        radius = 33f
+                                    )
 
                                 }
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_sunset),
-                                    contentDescription = null
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(text = "Sunset",color = contentColor)
+                                    Text(text = sunTimeFormatter.format(sunsets.first()),color = contentColor)
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))

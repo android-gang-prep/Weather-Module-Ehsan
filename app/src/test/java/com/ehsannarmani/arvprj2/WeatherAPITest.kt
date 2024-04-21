@@ -56,9 +56,9 @@ class WeatherAPITest {
         assert(response is BaseResponse.Success)
         val data = response as BaseResponse.Success
         val weather = data.data
+
         assert(weather.windSpeeds.first() == 2.4)
         assert(weather.windDirections.first() == 214.7)
-
         val (firstDate,firstTemperature) = weather.temperatures.first()
         assert(firstTemperature == 77.4)
         assert(testDateFormatter.format(firstDate) == "2024-04-20 13:00:00")
