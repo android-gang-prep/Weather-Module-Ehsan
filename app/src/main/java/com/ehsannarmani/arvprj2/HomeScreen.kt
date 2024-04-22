@@ -1,6 +1,10 @@
 package com.ehsannarmani.arvprj2
 
 import android.util.Range
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -72,7 +76,8 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
-val sunTimeFormatter= SimpleDateFormat("HH:mm")
+val sunTimeFormatter = SimpleDateFormat("HH:mm")
+
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewModel()) {
 
@@ -146,7 +151,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                 val prep = remember {
                                     try {
                                         ((precipitations.first() * 100) / precipitations.max()).roundToInt()
-                                    }catch (e:Exception){
+                                    } catch (e: Exception) {
                                         0
                                     }
                                 }
@@ -165,7 +170,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "${((100/uvs.max())*uvs.first())}%",
+                                    text = "${((100 / uvs.max()) * uvs.first())}%",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -285,21 +290,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                     )
                                 )
                             )
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(180.dp), verticalAlignment = Alignment.Bottom,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    .height(180.dp),
                             ) {
                                 val contentColor = Color.White.copy(.6f)
-                                Column (
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ){
-                                    Text(text = "Sunrsie",color = contentColor)
-                                    Text(text = sunTimeFormatter.format(sunrises.first()),color = contentColor)
-                                }
                                 val sunProgress = remember {
-                                    mutableDoubleStateOf(0.0)
+                                    Animatable(0.0f)
                                 }
                                 Canvas(
                                     modifier = Modifier
@@ -310,31 +308,44 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                     val sunset = (sunsets.first()?.time ?: 0)
                                     val system = System.currentTimeMillis()
 
-                                    if (sunProgress.value == 0.0) {
+                                    if (sunProgress.value == 0.0f) {
                                         scope.launch(Dispatchers.IO) {
-                                            sunProgress.value = percentOfRange(
-                                                min = sunrise,
-                                                max = sunset,
-                                                value = system
+                                            sunProgress.animateTo(
+                                                targetValue =  percentOfRange(
+                                                    min = sunrise,
+                                                    max = sunset,
+                                                    value = system
+                                                ).toFloat(),
+                                                animationSpec = tween(500)
                                             )
                                         }
                                     }
 
-                                    val externalLineSize = 70
-                                    val sunShapeBottomSpacing = 120
+                                    val sunShapeLinePadding = 50
                                     val sunShapeStrokeWith = 8f
 
-                                   val path = Path().apply {
-                                       arcTo(
-                                           rect = Rect(
-                                               center = Offset(size.width/2,size.height-sunShapeBottomSpacing),
-                                               radius = size.width/2
-                                           ),
-                                           startAngleDegrees = -180f,
-                                           sweepAngleDegrees = 180f,
-                                           forceMoveTo = true
-                                       )
-                                   }
+                                    val path = Path().apply {
+                                        arcTo(
+                                            rect = Rect(
+                                                center = Offset(size.width / 2, size.height),
+                                                radius = size.width / 3
+                                            ),
+                                            startAngleDegrees = -180f,
+                                            sweepAngleDegrees = 180f,
+                                            forceMoveTo = true
+                                        )
+                                    }
+                                    pathMeasure.setPath(path, false)
+                                    val sunPosition =
+                                        pathMeasure.getPosition((pathMeasure.length * sunProgress.value).toFloat())
+
+                                    val progressedPath = Path()
+                                    pathMeasure.getSegment(0f,pathMeasure.length*sunProgress.value.toFloat(),progressedPath)
+                                    drawPath(
+                                        path = progressedPath,
+                                        color = Color(0xffFFDC3A),
+                                        style = Stroke(width = sunShapeStrokeWith)
+                                    )
                                     drawPath(
                                         path = path,
                                         color = contentColor,
@@ -343,20 +354,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
 
                                     drawLine(
                                         color = contentColor,
-                                        start = Offset(x = -externalLineSize.toFloat(),y = size.height-sunShapeBottomSpacing),
-                                        end = Offset(x = size.width+externalLineSize,y = size.height-sunShapeBottomSpacing),
+                                        start = Offset(x = sunShapeLinePadding.toFloat(), y = size.height),
+                                        end = Offset(x = size.width-sunShapeLinePadding, y = size.height),
                                         strokeWidth = sunShapeStrokeWith
                                     )
 
-                                    clipRect(right = (size.width * sunProgress.value).toFloat()) {
-                                        drawPath(
-                                            path = path,
-                                            color = Color(0xffFFDC3A),
-                                            style = Stroke(width = sunShapeStrokeWith)
-                                        )
-                                    }
-                                    pathMeasure.setPath(path,false)
-                                    val sunPosition = pathMeasure.getPosition((pathMeasure.length*sunProgress.value).toFloat())
 
                                     drawCircle(
                                         color = Color(0xffFFDC3A),
@@ -370,9 +372,27 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                     )
 
                                 }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(text = "Sunset",color = contentColor)
-                                    Text(text = sunTimeFormatter.format(sunsets.first()),color = contentColor)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(text = "Sunset", color = contentColor)
+                                        Text(
+                                            text = sunTimeFormatter.format(sunsets.first()),
+                                            color = contentColor
+                                        )
+                                    }
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(text = "Sunrsie", color = contentColor)
+                                        Text(
+                                            text = sunTimeFormatter.format(sunrises.first()),
+                                            color = contentColor
+                                        )
+                                    }
                                 }
                             }
                         }
