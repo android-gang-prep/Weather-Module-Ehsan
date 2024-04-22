@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -53,6 +55,8 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -299,11 +303,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                 val sunProgress = remember {
                                     Animatable(0.0f)
                                 }
+                                val startOfShape = remember{mutableStateOf(Offset.Zero)}
+                                val endOfShape = remember{ mutableStateOf(Offset.Zero) }
                                 Canvas(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .weight(1f)
                                 ) {
+                                    println("height: ${size.height}, width: ${size.width}")
                                     val sunrise = (sunrises.first()?.time ?: 0)
                                     val sunset = (sunsets.first()?.time ?: 0)
                                     val system = System.currentTimeMillis()
@@ -328,7 +335,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                         arcTo(
                                             rect = Rect(
                                                 center = Offset(size.width / 2, size.height),
-                                                radius = size.width / 3
+                                                radius = minOf(size.width / 3,size.height)
                                             ),
                                             startAngleDegrees = -180f,
                                             sweepAngleDegrees = 180f,
@@ -337,10 +344,13 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                     }
                                     pathMeasure.setPath(path, false)
                                     val sunPosition =
-                                        pathMeasure.getPosition((pathMeasure.length * sunProgress.value).toFloat())
+                                        pathMeasure.getPosition((pathMeasure.length * sunProgress.value))
+
+                                    startOfShape.value = pathMeasure.getPosition(0f)
+                                    endOfShape.value = pathMeasure.getPosition(pathMeasure.length)
 
                                     val progressedPath = Path()
-                                    pathMeasure.getSegment(0f,pathMeasure.length*sunProgress.value.toFloat(),progressedPath)
+                                    pathMeasure.getSegment(0f,pathMeasure.length* sunProgress.value,progressedPath)
                                     drawPath(
                                         path = progressedPath,
                                         color = Color(0xffFFDC3A),
@@ -373,11 +383,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
 
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Row(
+                                val sunsetTextWidth = remember{ mutableStateOf(0) }
+                                val sunriseTextWidth = remember{ mutableStateOf(0) }
+                                Box(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    contentAlignment = Alignment.CenterStart
                                 ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally,modifier=
+                                    Modifier
+                                        .onSizeChanged { sunsetTextWidth.value = it.width }
+                                        .offset { IntOffset(x = startOfShape.value.x.toInt()-(sunsetTextWidth.value/2),y = 0) }) {
                                         Text(text = "Sunset", color = contentColor)
                                         Text(
                                             text = sunTimeFormatter.format(sunsets.first()),
@@ -385,7 +400,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                                         )
                                     }
                                     Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier= Modifier
+                                            .onSizeChanged { sunriseTextWidth.value = it.width }
+                                            .offset { IntOffset(x = endOfShape.value.x.toInt()-(sunriseTextWidth.value/2),y = 0) }
                                     ) {
                                         Text(text = "Sunrsie", color = contentColor)
                                         Text(
