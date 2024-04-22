@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
             ArvPrj2Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "home" ){
+                    NavHost(navController = navController, startDestination = "splash" ){
                         composable("splash"){
                             SplashScreen(navController = navController)
                         }
